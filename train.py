@@ -17,14 +17,14 @@ from utils.metrics import get_psnr_torch, get_ssim_torch, get_lpips_torch
 from utils.optimizer import build_optimizer
 from utils.scheduler import build_scheduler
 
-from models.LiMamba import get_local_mean_and_std
+from models.HiMA import get_local_mean_and_std
 
 def main(config, args):
     torch.autograd.set_detect_anomaly(True)
     writer = SummaryWriter(os.path.join(config['output'], 'tb_logs'))
     train_dataloader = build_train_loader(config['data'])
 
-    valid_dataloader = build_test_loader(config['data'], 8)
+    valid_dataloader = build_test_loader(config['data'])
 
     logger.info(f"Creating model:{config['name']}/{config['model']['name']}")
     model_name, model = build_model(config['model'])
