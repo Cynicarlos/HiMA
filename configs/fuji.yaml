@@ -1,0 +1,64 @@
+name: SONY
+test_as_valid: true
+manual_seed: 3407 # is all you need
+output: runs
+with_metadata: false
+with_raw_loss: true
+with_local_mean_and_std_loss: false
+
+loss:
+  types:
+  - L1 #pred_rgb & gt_rgb
+  - L1
+
+  weights:
+  - 1.0
+  - 1.0
+
+data:
+  name: SIDFujiDataset
+  data_dir: /data/dataset/Carlos/SID/Fuji
+  num_workers: 16
+  pin_memory: true
+  with_metatada: false
+  process:
+    transpose: false
+    h_flip: true
+    v_flip: true
+    ratio: true
+  test:
+    batch_size: 1
+    image_list_file: Fuji_test_list.txt
+  train:
+    batch_size: 1
+    image_list_file: Fuji_train_list.txt
+    patch_size: 512
+  valid:
+    batch_size: 1
+    image_list_file: Fuji_val_list.txt
+
+model:
+  name: HiMA
+  HiMA:
+    in_channels: 4
+    dims: 32
+    layers: 4
+    num_blocks_per_layer: [2,2,2,2]
+    with_local_mean_std_sup: false
+
+train:
+  base_lr: 2.0e-4
+  last_lr_epoch: 300
+  clip_grad: 0.1
+  epochs: 300
+  lr_scheduler:
+    type: cosine
+  optimizer: 
+    type: adamw
+    eps: 1.0e-8
+    betas: [0.9, 0.999]
+  min_lr: 2.0e-5
+  start_epoch: 0
+  weight_decay: 0
+  warmup_epochs: 0
+
