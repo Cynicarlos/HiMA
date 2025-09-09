@@ -1,4 +1,4 @@
-name: FUJI
+name: LRD
 test_as_valid: true
 manual_seed: 3407 # is all you need
 output: runs
@@ -16,12 +16,10 @@ loss:
   - 1.0
 
 data:
-  name: SIDFujiDataset
-  data_dir: /data/dataset/Carlos/SID/Fuji
-  load_npy: true
+  name: LRDDataset
+  data_dir: /data/dataset/Carlos/SID/Sony
   num_workers: 16
   pin_memory: true
-  with_metatada: false
   process:
     transpose: false
     h_flip: true
@@ -29,19 +27,19 @@ data:
     ratio: true
   test:
     batch_size: 1
-    image_list_file: Fuji_test_list.txt
+    image_list_file: LRD_test_list.txt
   train:
     batch_size: 1
-    image_list_file: Fuji_train_list.txt
+    image_list_file: LRD_train_list.txt
     patch_size: 512
   valid:
     batch_size: 1
-    image_list_file: Fuji_val_list.txt
+    image_list_file: LRD_val_list.txt
 
 model:
   name: HiMA
   HiMA:
-    in_channels: 9
+    in_channels: 4
     dims: 32
     layers: 4
     num_blocks_per_layer: [2,2,2,2]

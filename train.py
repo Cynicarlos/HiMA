@@ -48,12 +48,12 @@ def main(config, args):
     if args.auto_resume:
         auto_resume_path = os.path.join(config['output'], 'checkpoints', 'checkpoint.pth')
         if os.path.exists(auto_resume_path):
-            metrics['psnr'], metrics['max_psnr'] = load_checkpoint(config, auto_resume_path, model, optimizer, lr_scheduler, logger)
+            metrics = load_checkpoint(config, auto_resume_path, model, optimizer, lr_scheduler, logger)
             #validate(config, model, critierion, valid_dataloader, config['train'].get('start_epoch', 0), writer)
         else:
             raise ValueError(f"Auto resume failed, no checkpoint found at {auto_resume_path}")
     elif args.resume:
-        metrics['psnr'], metrics['max_psnr'] = load_checkpoint(config, args.resume, model, optimizer, lr_scheduler, logger)
+        metrics = load_checkpoint(config, args.resume, model, optimizer, lr_scheduler, logger)
         #validate(config, model, critierion, valid_dataloader, config['train'].get('start_epoch', 0), writer)
 
 
@@ -268,6 +268,7 @@ def validate_metric(pred, gt):
 
 
 if __name__=='__main__':
+    torch.distributed.init_process_group(backend='nccl')
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='configs/sony.yaml',type=str, help='Path to option YAML file.')
     parser.add_argument('--auto-resume', action='store_true', default=False, help='Auto resume from latest checkpoint')

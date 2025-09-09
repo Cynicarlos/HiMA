@@ -1,4 +1,6 @@
+import torch
 from torch import optim as optim
+from muon import MuonWithAuxAdam
 
 def build_optimizer(config, model):
     """
@@ -17,6 +19,16 @@ def build_optimizer(config, model):
     if opt_lower == 'adamw':
         optimizer = optim.AdamW(parameters, eps=config['optimizer']['eps'], betas=config['optimizer']['betas'],
                                 lr=config['base_lr'], weight_decay=config['weight_decay'])
+    elif opt_lower == 'muon':
+        hidden_weights = [p for p in model.parameters() if p.ndim >= 2]
+        hidden_gains_biases = [p for p in model.parameters() if p.ndim < 2]
+        param_groups = [
+            dict(params=hidden_weights, use_muon=True,
+                lr=config['base_lr'], weight_decay=0.01),
+            dict(params=hidden_gains_biases, use_muon=False,
+                lr=config['base_lr'], betas=config['optimizer']['betas'], weight_decay=config['weight_decay']),
+        ]
+        optimizer = MuonWithAuxAdam(param_groups)
     else:
         raise NotImplementedError(f"Optimizer {opt_lower} not supported")
 
