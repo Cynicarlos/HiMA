@@ -63,6 +63,9 @@ python train.py --config=configs/sony.yaml
 ```
 For other datasets, just change the ```config```.
 
+If you want to run the program in the background, you can use the script ```./train.sh``` Remember to install tmux first. And when you firstly try this, you should usually run ```chmod +x train.sh```
+
+Then you may use ```tail -f train.log``` to see the training process.
 ## Test
 Before evaluating our pretrained models, please download them by the following links and put them in the ```pretrained``` folder.  
 | Dataset | Pretrained Model  |

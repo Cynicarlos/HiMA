@@ -1,10 +1,8 @@
 einops
-exifread
 imageio
 numpy
-pytorch_wavelets
-pywavelets
 rawpy
+ssm==2.2.4
 tensorboard
 thop
 timm
