@@ -11,8 +11,8 @@ from torch.utils import data
 @DATASET_REGISTRY.register()
 class MCRDataset(data.Dataset):
 
-    def __init__(self, data_dir, image_list_file, patch_size=None, split='train', with_metatada=False,
-                metarange_file='metarange.txt',  transpose=False, h_flip=False, v_flip=False, ratio=False, **kwargs):
+    def __init__(self, data_dir, image_list_file, patch_size=None, split='train',
+                transpose=False, h_flip=False, v_flip=False, ratio=False, **kwargs):
 
         assert os.path.exists(data_dir), "data_dir: {} not found.".format(data_dir)
         self.data_dir = data_dir #E:\Deep Learning\datasets\MCR
@@ -23,7 +23,6 @@ class MCRDataset(data.Dataset):
 
         self.patch_size = patch_size
         self.split = split
-        self.with_metadata = with_metatada
 
         self.transpose = transpose
         self.h_flip = h_flip
@@ -108,16 +107,11 @@ class MCRDataset(data.Dataset):
         input_raw = torch.from_numpy(input_raw).float()
         gt_raw = torch.from_numpy(gt_raw).float()
         gt_rgb = torch.from_numpy(gt_rgb).float()
-        
-        if self.with_metadata:
-            metadata = torch.tensor([])
-            metadata = torch.tensor([1/info['ratio']]).type(torch.float32)
 
         return {
             'input_raw': input_raw,
             'gt_raw': gt_raw,
             'gt_rgb': gt_rgb,
-            #'input_metadata': metadata,
             'input_path': input_path,
             'gt_path': gt_rgb_path,
             'input_exposure': info['input_exposure'],

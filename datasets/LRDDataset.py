@@ -7,8 +7,6 @@ import rawpy
 import torch
 from torch.utils import data
 import sys
-sys.path.append('/data/models/Carlos/HiMA/')
-sys.path.append('E:\Deep Learning\HiMA\HiMA')
 
 from utils.registry import DATASET_REGISTRY
 @DATASET_REGISTRY.register()

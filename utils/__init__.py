@@ -43,7 +43,7 @@ def format_time(seconds):
     return f
 
 def load_checkpoint(config, checkpoint_path, model, optimizer, lr_scheduler, logger, epoch=None):
-    logger.info(f"==============> Resuming form {checkpoint_path}....................")
+    logger.info(f"==============> Resuming form {checkpoint_path}<==============")
     if checkpoint_path.startswith('https'):
         checkpoint = torch.hub.load_state_dict_from_url(
             checkpoint_path, map_location='cpu', check_hash=True)
@@ -67,7 +67,7 @@ def load_checkpoint(config, checkpoint_path, model, optimizer, lr_scheduler, log
 
 def load_pretrained_model(config, model, logger):
     checkpoint_path = config['pretrained']
-    logger.info(f"==============> Loading pretrained model form {checkpoint_path}....................")
+    logger.info(f"==============> Loading pretrained model form {checkpoint_path}<==============")
     if checkpoint_path.startswith('https'):
         checkpoint = torch.hub.load_state_dict_from_url(
             checkpoint_path, map_location='cpu', check_hash=True)

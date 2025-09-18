@@ -12,8 +12,8 @@ sys.path.append('/data/models/Carlos/HiMA/')
 from utils.registry import DATASET_REGISTRY
 @DATASET_REGISTRY.register()
 class SIDSonyDataset(data.Dataset):
-    def __init__(self, data_dir, image_list_file, patch_size=None, split='train', with_metatada=False,
-                metarange_file='metarange.txt',  transpose=False, h_flip=False, v_flip=False, ratio=False, **kwargs):
+    def __init__(self, data_dir, image_list_file, patch_size=None, split='train',
+                transpose=False, h_flip=False, v_flip=False, ratio=False, **kwargs):
         assert os.path.exists(data_dir), "data_path: {} not found.".format(data_dir)
         self.data_dir = data_dir
         image_list_file = os.path.join(data_dir, image_list_file)
@@ -21,7 +21,6 @@ class SIDSonyDataset(data.Dataset):
         self.image_list_file = image_list_file
         self.patch_size = patch_size
         self.split = split
-        self.with_metadata = with_metatada
         
         self.transpose = transpose
         self.h_flip = h_flip
@@ -29,19 +28,6 @@ class SIDSonyDataset(data.Dataset):
         self.ratio = ratio
         self.black_level = 512
         self.white_level = 16383
-        
-        #===================================================================
-        if with_metatada:
-            metarange_file = os.path.join(data_dir, metarange_file)
-            assert os.path.exists(metarange_file), "metarange_file: {} not found.".format(metarange_file)
-            self.metarange_file = metarange_file
-            self.keys_min_max = {}
-            with open(self.metarange_file, 'r') as f:
-                for i, key_min_max in enumerate(f):
-                    key_min_max = key_min_max.strip()
-                    key, _min, _max = key_min_max.split(' ')
-                    self.keys_min_max[key] = [eval(_min), eval(_max)]
-        #===================================================================
         
         self.img_info = []
         with open(self.image_list_file, 'r') as f:
@@ -53,32 +39,9 @@ class SIDSonyDataset(data.Dataset):
                 ratio = min(gt_exposure/input_exposure, 300)
                 _id = os.path.basename(input_path)#10003_00_10s.ARW
                 _id, extension = os.path.splitext(_id)#10003_00_10s    .ARW
-                meta = {}
-                if with_metatada:
-                    metainfo_path = os.path.join(self.data_dir, 'Sony/meta', _id + '.txt')
-                    with open(metainfo_path, 'r') as f:
-                        for i, k_v in enumerate(f):
-                            k_v = k_v.strip()#"ISO": "200"
-                            if k_v:
-                                key, value = k_v.split(': ')
-                                key = key.strip('"')
-                                value = value.strip('"')
-                                if key == 'ExposureTime':
-                                    value = float(eval(value))
-                                elif key == 'FocalLength':
-                                    value = float(re.search(r'(\d+(\.\d+)?)', value).group(1))
-                                # elif key == 'ColorMatrix':
-                                #     ts = [int(t) for t in value.split()]
-                                #     value = torch.tensor(ts) #(9)
-                                elif key in ['ColorMatrix','BrightnessValue', 'BlueBalance', 'RedBalance', 'LightValue']:
-                                    continue
-                                else:
-                                    value = eval(value)
-                                meta[key] = value
                 self.img_info.append({
                     'input_path': input_path,
                     'gt_path': gt_path,
-                    'meta': meta,
                     'input_exposure': input_exposure,
                     'gt_exposure': gt_exposure,
                     'ratio': np.float32(ratio),
@@ -137,37 +100,16 @@ class SIDSonyDataset(data.Dataset):
         gt_raw = torch.from_numpy(gt_raw).float()
         gt_rgb = torch.from_numpy(gt_rgb).float()
         
-        input_metainfo = torch.tensor([])
-        if self.with_metadata:
-            input_metadata = self.getMetaInfoTensor(info['meta'])
-
         return {
             'input_raw': input_raw,
             'gt_raw': gt_raw,
             'gt_rgb': gt_rgb,
-            #'input_metadata': input_metadata,
-            #'gt_metainfo': gt_metainfo,
             'input_path': input_path,
             'gt_path': gt_path,
             'input_exposure': info['input_exposure'],
             'gt_exposure': info['gt_exposure'],
             'ratio': info['ratio']
         }
-
-    def getMetaInfoTensor(self, metainfo):
-        res = []
-        ColorMatrix = None
-        for i, (k, v) in enumerate(metainfo.items()):
-            if k == 'ColorMatrix':
-                ColorMatrix = v #(9)
-            else:
-                min = self.keys_min_max[k][0]
-                max = self.keys_min_max[k][1]
-                res.append(torch.tensor((v - min) / (max - min), dtype=torch.float32))
-        res = torch.tensor(res)
-        if ColorMatrix is not None:
-            res = torch.cat((res, ColorMatrix), dim=0)
-        return res
 
     def pack_raw(self, raw):
         # pack Bayer image to 4 channels (RGBG)
@@ -369,7 +311,6 @@ if __name__=='__main__':
     #dataset = SIDSonyDataset(data_dir='E:\Deep Learning\datasets\RAW\SID\Sony',
     # image_list_file='Sony_test_list.txt',
     # patch_size=512,
-    # with_metatada=False,
     # split='test')
     # dataset = SIDFujiDataset(data_dir='/data/dataset/Carlos/SID/Fuji/',
     #                          image_list_file='Fuji_train_list.txt',

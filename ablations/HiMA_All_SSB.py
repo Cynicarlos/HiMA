@@ -481,13 +481,13 @@ class MultiPriorFuse(nn.Module):
         self.refine_aligned_raw = nn.Conv2d(in_channels, dims, 1)
         self.hf_refine1 = nn.Conv2d(in_channels, dims, 3, padding=1)
         self.mix_hf = nn.Sequential(
-            nn.Conv2d(2*dims, dims, 3, padding=1, groups=dims),
+            nn.Conv2d(3*dims, dims, 3, padding=1, groups=dims),
             nn.GELU(),
             nn.Conv2d(dims, dims, 1)
         )
         self.refine1 = nn.Conv2d(dims, dims, 1)
         self.refine2 = nn.Conv2d(dims, dims, 1)
-    def forward(self, x, y, pred_raw, aligned_raw):
+    def forward(self, x, y, pred_raw, hf_pred_raw, aligned_raw):
         '''
         x,y (b,c,h,w)
         prior, pred_raw_high_fre (b, c_in, h, w)
@@ -495,12 +495,13 @@ class MultiPriorFuse(nn.Module):
         shortcut = y
         aligned_raw = self.refine_aligned_raw(aligned_raw)
         pred_raw = self.refine_pred_raw(pred_raw)
+        hf_pred_raw = self.hf_refine1(hf_pred_raw)
 
         y = y + aligned_raw
         y_high_fre, _, _ = extract_fre(y)
 
         x_high_fre, x_high_fre_imag, x_low_fre = extract_fre(x)
-        x_high_fre = self.mix_hf(torch.cat([x_high_fre, y_high_fre], dim=1))
+        x_high_fre = self.mix_hf(torch.cat([x_high_fre, hf_pred_raw, y_high_fre], dim=1))
         x = inv_extract_fre(x_low_fre, x_high_fre, x_high_fre_imag)
 
         x = self.refine1(x) + pred_raw
@@ -675,7 +676,7 @@ class LocalDistributionAlign(nn.Module):
 
 from utils.registry import MODEL_REGISTRY
 @MODEL_REGISTRY.register()
-class HiMA(nn.Module):
+class HiMA_All_SSB(nn.Module):
     def __init__(self, in_channels=3, dims=32, layers=4, num_blocks_per_layer=[1,1,1,1],with_local_mean_std_sup=False):
         super().__init__()
         self.layers = layers
@@ -706,31 +707,38 @@ class HiMA(nn.Module):
 
         #==================================encoders==================================
         self.encoder1 = nn.ModuleList([
-            LSBlock(dims=dims*(2**0), num_heads=4, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[0])
+            # LSBlock(dims=dims*(2**0), num_heads=1, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[0])
+            SSBlock(dims=dims*(2**0), num_scan_directions=4, expand=1) for i in range(num_blocks_per_layer[0])
         ])
         self.encoder2 = nn.ModuleList([
-            LSBlock(dims=dims*(2**1), num_heads=8, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[1])
+            # LSBlock(dims=dims*(2**1), num_heads=2, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[1])
+            SSBlock(dims=dims*(2**1), num_scan_directions=4, expand=1) for i in range(num_blocks_per_layer[1])
         ])
         self.encoder3 = nn.ModuleList([
+            # LSBlock(dims=dims*(2**2), num_heads=4, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[2])
             SSBlock(dims=dims*(2**2), num_scan_directions=4, expand=1.33) for i in range(num_blocks_per_layer[2])
         ])
         #==================================encoders==================================
 
         #==================================bottleneck==================================
         self.bottleneck = nn.ModuleList([
-            SSBlock(dims=dims*(2**3), num_scan_directions=4, expand=1.11) for i in range(num_blocks_per_layer[3]) 
+            # LSBlock(dims=dims*(2**3), num_heads=8, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[3]) 
+            SSBlock(dims=dims*(2**3), num_scan_directions=4, expand=1.11) for i in range(num_blocks_per_layer[3])
         ])
         #==================================bottleneck==================================
 
         #==================================decoders==================================
         self.decoder3 = nn.ModuleList([
+            # LSBlock(dims=dims*(2**2), num_heads=8, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[2])
             SSBlock(dims=dims*(2**2), num_scan_directions=4, expand=1.33) for i in range(num_blocks_per_layer[2])
         ])
         self.decoder2 = nn.ModuleList([
-            LSBlock(dims=dims*(2**1), num_heads=8, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[1])
+            # LSBlock(dims=dims*(2**1), num_heads=8, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[1])
+            SSBlock(dims=dims*(2**1), num_scan_directions=4, expand=1) for i in range(num_blocks_per_layer[1])
         ])
         self.decoder1 = nn.ModuleList([
-            LSBlock(dims=dims*(2**0), num_heads=4, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[0])
+            # LSBlock(dims=dims*(2**0), num_heads=4, meta_dims=self.meta_dims) for i in range(num_blocks_per_layer[0])
+            SSBlock(dims=dims*(2**0), num_scan_directions=4, expand=1) for i in range(num_blocks_per_layer[2])
         ])
         #==================================decoders==================================
 
@@ -759,64 +767,79 @@ class HiMA(nn.Module):
         aligned_raw = self.input_local_distribution_align(x)
         pred_raw, l1, l2, l3 = self.pdb(aligned_raw) #(b,c_in,h,w) (b, 4c, h//4, w//4) (b, c, h, w)
         raw_out = pred_raw
-        
+        hf_pred_raw, _, _ = extract_fre(pred_raw)
+
         pred_raws = []
+        hf_pred_raws = []
         aligned_raws = []
-        shortcut = x
         x = self.conv_in(x)
 
         encoder_features = []
 
         for encoder in self.encoder1:
-            x = encoder(x, self.learnable_metadata)
+            # x = encoder(x, self.learnable_metadata)
+            x = encoder(x)
         encoder_features.append(x)
         x = self.downs[0](x)
         pred_raws.append(pred_raw)
         pred_raw = self.pred_raw_downs[0](pred_raw)
+        hf_pred_raws.append(hf_pred_raw)
+        hf_pred_raw = self.hf_pred_raw_downs[0](hf_pred_raw)
         aligned_raws.append(aligned_raw)
         aligned_raw = self.aligned_x_downs[0](aligned_raw)
 
         for encoder in self.encoder2:
-            x = encoder(x, self.learnable_metadata)
+            # x = encoder(x, self.learnable_metadata)
+            x = encoder(x)
         encoder_features.append(x)
         x = self.downs[1](x)
         pred_raws.append(pred_raw)
         pred_raw = self.pred_raw_downs[1](pred_raw)
+        hf_pred_raws.append(hf_pred_raw)
+        hf_pred_raw = self.hf_pred_raw_downs[1](hf_pred_raw)
         aligned_raws.append(aligned_raw)
         aligned_x = self.aligned_x_downs[1](aligned_raw)
 
         for encoder in self.encoder3:
+            # x = encoder(x, self.learnable_metadata)
             x = encoder(x)
         encoder_features.append(x)
         x = self.downs[2](x)
         pred_raws.append(pred_raw)
         pred_raw = self.pred_raw_downs[2](pred_raw)
+        hf_pred_raws.append(hf_pred_raw)
+        hf_pred_raw = self.hf_pred_raw_downs[2](hf_pred_raw)
         aligned_raws.append(aligned_x)
         aligned_x = self.aligned_x_downs[2](aligned_raw)
 
         for block in self.bottleneck:
+            # x = block(x, self.learnable_metadata)
             x = block(x)
 
         encoder_features.reverse() #(4,2,1)
         pred_raws.reverse()
+        hf_pred_raws.reverse()
         aligned_raws.reverse()
 
         x = self.ups[0](x)
-        x = self.fuses[0](x, encoder_features[0], pred_raws[0], aligned_raws[0])
+        x = self.fuses[0](x, encoder_features[0], pred_raws[0], hf_pred_raws[0], aligned_raws[0])
         for decoder in self.decoder3:
+            # x = decoder(x, self.learnable_metadata)
             x = decoder(x)
 
         x = self.ups[1](x)
-        x = self.fuses[1](x, encoder_features[1], pred_raws[1], aligned_raws[1])
+        x = self.fuses[1](x, encoder_features[1], pred_raws[1], hf_pred_raws[1], aligned_raws[1])
         for decoder in self.decoder2:
-            x = decoder(x, self.learnable_metadata)
+            # x = decoder(x, self.learnable_metadata)
+            x = decoder(x)
 
         x = self.ups[2](x)
-        x = self.fuses[2](x, encoder_features[2], pred_raws[2], aligned_raws[2])
+        x = self.fuses[2](x, encoder_features[2], pred_raws[2], hf_pred_raws[2], aligned_raws[2])
         for decoder in self.decoder1:
-            x = decoder(x, self.learnable_metadata)
+            # x = decoder(x, self.learnable_metadata)
+            x = decoder(x)
 
-        x = self.refine(x + shortcut)
+        x = self.refine(x)
         x, raw_out = self._check_and_crop(x, raw_out)
         if self.with_local_mean_std_sup:
             return x, raw_out, refined_mean, refined_std
@@ -855,13 +878,13 @@ def cal_model_complexity(model, x):
 
 if __name__ == '__main__':
     from tqdm import tqdm
-    model = HiMA(in_channels=4, dims=32, layers=4, num_blocks_per_layer=[2,2,2,2]).to(device='cuda') 
+    model = HiMA_All_SSB(in_channels=4, dims=32, layers=4, num_blocks_per_layer=[2,2,2,2]).to(device='cuda') 
     x = torch.randn((1,4,512,512)).to(device='cuda')
     with torch.no_grad():
         cal_model_complexity(model, x)
         rgb, raw = model(x)
         print(rgb.shape, raw.shape)
-    exit(0)
+    #exit(0)
 
     iterations = 10
     starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
@@ -870,12 +893,12 @@ if __name__ == '__main__':
 
     with torch.no_grad():
         for _ in range(10):
-            _ = model(x)
+            _,_ = model(x)
 
     with torch.no_grad():
         for iter in tqdm(range(iterations), desc="Measuring Inference Time", unit="iteration"):
             starter.record()
-            _ = model(x)
+            _,_ = model(x)
             ender.record()
 
             torch.cuda.synchronize()

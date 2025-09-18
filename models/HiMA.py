@@ -677,10 +677,9 @@ class LocalDistributionAlign(nn.Module):
 from utils.registry import MODEL_REGISTRY
 @MODEL_REGISTRY.register()
 class HiMA(nn.Module):
-    def __init__(self, in_channels=3, dims=32, layers=4, num_blocks_per_layer=[1,1,1,1],with_local_mean_std_sup=False):
+    def __init__(self, in_channels=3, dims=32, layers=4, num_blocks_per_layer=[1,1,1,1]):
         super().__init__()
         self.layers = layers
-        self.with_local_mean_std_sup = with_local_mean_std_sup
 
         self.sqrt_inchannels = int(math.sqrt(in_channels))
 
@@ -827,10 +826,7 @@ class HiMA(nn.Module):
 
         x = self.refine(x)
         x, raw_out = self._check_and_crop(x, raw_out)
-        if self.with_local_mean_std_sup:
-            return x, raw_out, refined_mean, refined_std
-        else:
-            return x, raw_out
+        return x, raw_out
 
     def _check_and_padding(self, x):
         _, _, h, w = x.size()
