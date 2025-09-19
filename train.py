@@ -101,21 +101,10 @@ def train_one_epoch(config, model, critierion, data_loader, optimizer, epoch, lr
         gt_rgb = data['gt_rgb'].cuda(non_blocking=True)
         if config['with_raw_loss']:
             gt_raw = data['gt_raw'].cuda(non_blocking=True)
-            if config['with_local_mean_and_std_loss']:
-                gt_raw_mean, gt_raw_std = get_local_mean_and_std(gt_raw, 16, 16)
-                #gt_rgb_mean, gt_rgb_std = get_local_mean_and_std(gt_rgb, 32, 32)
 
-        if config['with_metadata']:
-            metadata = data['input_metadata'].cuda(non_blocking=True)
-            pred = model(input_raw, metadata)
-        else:
-            pred = model(input_raw)
+        pred = model(input_raw)
         if config['with_raw_loss']:
-            if config['with_local_mean_and_std_loss']:
-                #losses = critierion(pred, [gt_rgb, gt_raw, gt_raw_mean, gt_raw_std, gt_rgb_mean, gt_rgb_std])
-                losses = critierion(pred, [gt_rgb, gt_raw, gt_raw_mean, gt_raw_std])
-            else:
-                losses = critierion(pred, [gt_rgb, gt_raw])
+            losses = critierion(pred, [gt_rgb, gt_raw])
         else:
             losses = critierion(pred, gt_rgb)
 
@@ -136,30 +125,15 @@ def train_one_epoch(config, model, critierion, data_loader, optimizer, epoch, lr
         loss_meter.update(loss.item(), batch_size)
         norm_meter.update(grad_norm)
         if config['with_raw_loss']:
-            if config['with_local_mean_and_std_loss']:
-                tqdm_loader.set_postfix(
-                    {
-                        'al_rgb':f'{losses_meter[0].avg:.6f}',
-                        'al_raw':f'{losses_meter[1].avg:.6f}',
-                        'al_mean1':f'{losses_meter[2].avg:.5f}',
-                        'al_std1':f'{losses_meter[3].avg:.5f}',
-                        #'al_mean2':f'{losses_meter[4].avg:.5f}',
-                        #'al_std2':f'{losses_meter[5].avg:.5f}',
-                        'al_t':f'{loss_meter.avg:.5f}',
-                        'lr':f"{optimizer.param_groups[0]['lr']:.6f}"
-                    },
-                    refresh=True
-                )
-            else:
-                tqdm_loader.set_postfix(
-                    {
-                        'al_rgb':f'{losses_meter[0].avg:.6f}',
-                        'al_raw':f'{losses_meter[1].avg:.6f}',
-                        'al_t':f'{loss_meter.avg:.6f}',
-                        'lr':f"{optimizer.param_groups[0]['lr']:.6f}"
-                    },
-                    refresh=True
-                )
+            tqdm_loader.set_postfix(
+                {
+                    'al_rgb':f'{losses_meter[0].avg:.6f}',
+                    'al_raw':f'{losses_meter[1].avg:.6f}',
+                    'al_t':f'{loss_meter.avg:.6f}',
+                    'lr':f"{optimizer.param_groups[0]['lr']:.6f}"
+                },
+                refresh=True
+            )
         else:
             tqdm_loader.set_postfix(
                 {
@@ -180,19 +154,11 @@ def train_one_epoch(config, model, critierion, data_loader, optimizer, epoch, lr
     train_time = format_time(end_time-start_time)
 
     if config['with_raw_loss']:
-        if config['with_local_mean_and_std_loss']:
-            logger.info(
-                f'Train: [{epoch}/{config["train"]["epochs"]}]\
-                al_rgb:{losses_meter[0].avg:.6f} al_raw:{losses_meter[1].avg:.6f}\
-                al_mean1:{losses_meter[2].avg:.6f} al_std1:{losses_meter[3].avg:.6f}\
-                al_total: {loss_meter.avg:.6f} lr: {optimizer.param_groups[0]["lr"]:.6f} train_time: {train_time}'
-            )
-        else:
-            logger.info(
-                f'Train: [{epoch}/{config["train"]["epochs"]}]\
-                al_rgb:{losses_meter[0].avg:.6f} al_raw:{losses_meter[1].avg:.6f}\
-                al_total: {loss_meter.avg:.6f} lr: {optimizer.param_groups[0]["lr"]:.6f} train_time: {train_time}'
-            )
+        logger.info(
+            f'Train: [{epoch}/{config["train"]["epochs"]}]\
+            al_rgb:{losses_meter[0].avg:.6f} al_raw:{losses_meter[1].avg:.6f}\
+            al_total: {loss_meter.avg:.6f} lr: {optimizer.param_groups[0]["lr"]:.6f} train_time: {train_time}'
+        )
     else:
         logger.info(f'Train: [{epoch}/{config["train"]["epochs"]}] total loss: {loss_meter.avg:.6f} lr: {optimizer.param_groups[0]["lr"]:.6f} train_time: {train_time}')
 
@@ -209,15 +175,9 @@ def validate(config, model, data_loader, epoch, writer):
         input_path, gt_path = data['input_path'][0], data['gt_path'][0]
         input_raw = data['input_raw'].cuda(non_blocking=True)
         gt_rgb = data['gt_rgb'].cuda(non_blocking=True)
-        
-        if config['with_metadata']:
-            input_metadata = data['input_metadata'].cuda(non_blocking=True)
-            pred = model(input_raw, input_metadata)
-        else:
-            pred = model(input_raw)
+        pred = model(input_raw)
         if config['with_raw_loss']:
             pred = pred[0]
-
         pred = torch.clamp(pred, 0, 1)
         gt_rgb = torch.clamp(gt_rgb, 0, 1)
         lpips = get_lpips_torch(pred, gt_rgb)
@@ -268,12 +228,14 @@ def validate_metric(pred, gt):
 
 
 if __name__=='__main__':
-    torch.distributed.init_process_group(backend='nccl')
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='configs/sony.yaml',type=str, help='Path to option YAML file.')
     parser.add_argument('--auto-resume', action='store_true', default=False, help='Auto resume from latest checkpoint')
     parser.add_argument('--resume', type=str, default=None, help='Path to resume.')
+    parser.add_argument('--use_muon', action='store_true', default=False)
     args = parser.parse_args()
+    if args.use_muon:
+        torch.distributed.init_process_group(backend='nccl')
     with open(args.config, 'r') as file:
         config = yaml.safe_load(file)
     set_random_seed(config['manual_seed'])
