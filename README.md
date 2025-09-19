@@ -5,6 +5,8 @@ git clone https://github.com/Cynicarlos/HiMA.git
 ```
 ## Environment Preparation
 ```
+conda create -n HiMA python=3.9
+conda activate HiMA
 pip install -r requirements.txt
 ```
 If you want to use Muon optimizer, install it as follows, else ignore it.
