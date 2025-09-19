@@ -3,7 +3,6 @@ import re
 import torch
 import rawpy
 import numpy as np
-import exifread
 from torch.utils.data import Dataset
 
 #Notice: The ELD dataset is only for evaluation

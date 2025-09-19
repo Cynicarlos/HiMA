@@ -2,13 +2,21 @@
 Clone this repository
 ```
 git clone https://github.com/Cynicarlos/HiMA.git
+cd HiMA
 ```
 ## Environment Preparation
 ```
 conda create -n HiMA python=3.9
 conda activate HiMA
+```
+```
+pip install torch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 --index-url https://download.pytorch.org/whl/cu118
 pip install -r requirements.txt
 ```
+If errors occur when install mamba-ssm, please download the wheel file in the following link and than pip install it.
+
+[mamba-ssm_baidu](https://pan.baidu.com/s/1K-FeQBXwf6hnGqa6xmqYdw?pwd=f8df) / [mamba-ssm_google](https://drive.google.com/file/d/1LAepdNvy4iCpQCpv7mR5hK1Q8gecx0l6/view?usp=sharing) or [mamba-ssm_other_versions](https://github.com/state-spaces/mamba/releases)
+
 If you want to use Muon optimizer, install it as follows, else ignore it.
 ```
 pip install git+https://github.com/KellerJordan/Muon

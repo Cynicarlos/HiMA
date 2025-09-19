@@ -1,8 +1,7 @@
 einops
 imageio
-numpy
+numpy==1.26.0
 rawpy
-ssm==2.2.4
 tensorboard
 thop
 timm
