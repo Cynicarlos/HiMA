@@ -53,7 +53,7 @@ The directory for the datasets should be as following:
 ```
 
 ## Train
-If you want to use Muon, please use ```torch run``` as follows:
+If you want to use ```Muon``` optimizer, please use ```torchrun``` as follows:
 ```
 torchrun --nproc_per_node=1 train.py --config=configs/sony.yaml
 ```
@@ -61,9 +61,11 @@ Otherwise, use
 ```
 python train.py --config=configs/sony.yaml
 ```
+The results should be similar.
+
 For other datasets, just change the ```config```.
 
-If you want to run the program in the background, you can use the script ```./train.sh``` Remember to install tmux first. And when you firstly try this, you should usually run ```chmod +x train.sh```
+If you want to run the program in the background, you can use the script ```./train.sh``` Remember to install ```tmux``` first. And when you firstly try this, you should usually run ```chmod +x train.sh```
 
 Then you may use ```tail -f train.log``` to see the training process.
 ## Test
