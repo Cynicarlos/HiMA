@@ -1,8 +1,14 @@
 # HiMA
-
+Clone this repository
+```
+git clone https://github.com/Cynicarlos/HiMA.git
+```
 ## Environment Preparation
 ```
 pip install -r requirements.txt
+```
+If you want to use Muon optimizer, install it as follows, else ignore it.
+```
 pip install git+https://github.com/KellerJordan/Muon
 ```
 
