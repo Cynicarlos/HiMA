@@ -61,7 +61,7 @@ Otherwise, use
 ```
 python train.py --config=configs/sony.yaml
 ```
-The results should be similar.
+The results should be similar but the training time is longer for Muon.
 
 For other datasets, just change the ```config```.
 
