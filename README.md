@@ -5,22 +5,30 @@ git clone https://github.com/Cynicarlos/HiMA.git
 cd HiMA
 ```
 ## Environment Preparation
+
+### Use packed environment
+To make it easy, we provide the packed environemnt, you can just download `HiMA.tar.gz` from [Google Drive](https://drive.google.com/file/d/1Jx7gSDNOdY4Mkddc_bokeaGfqLZ7FYTl/view?usp=sharing) or [Baidu Pan](https://pan.baidu.com/s/1DD3DC0m2-dYNe54C3dBknA?pwd=tbjd), and unzip it.
+Then activate it by `conda activate HiMA`.
+
+### Create environment from scratch
 ```
 conda create -n HiMA python=3.9
 conda activate HiMA
-```
-```
 pip install torch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 --index-url https://download.pytorch.org/whl/cu118
-pip install -r requirements.txt
 ```
-If errors occur when install mamba-ssm, please download the wheel file in the following link and than pip install it.
+Then `pip install -r requirements.txt`
+
+If errors occur when install mamba_ssm, please download the wheel file in the following link and than pip install it offline.
 
 [mamba-ssm_baidu](https://pan.baidu.com/s/1K-FeQBXwf6hnGqa6xmqYdw?pwd=f8df) / [mamba-ssm_google](https://drive.google.com/file/d/1LAepdNvy4iCpQCpv7mR5hK1Q8gecx0l6/view?usp=sharing) or [mamba-ssm_other_versions](https://github.com/state-spaces/mamba/releases)
 
+
+
 If you want to use Muon optimizer, install it as follows, else ignore it.
-```
+
+`
 pip install git+https://github.com/KellerJordan/Muon
-```
+`
 
 ## Dataset Preparation
 | Dataset | Download link |  Source  |  CFA     |
@@ -85,7 +93,7 @@ If you want to run the program in the background, you can use the script ```./tr
 
 Then you may use ```tail -f train.log``` to see the training process.
 ## Test
-Before evaluating our pretrained models, please download them by the following links and put them in the ```pretrained``` folder.  
+Before evaluating our pretrained models, please download them by the following links and change their name to `sony.pth` et. al and put them in the ```pretrained``` folder.  
 [Google Drive](https://drive.google.com/drive/folders/196hPm0aLqpgsxLryKqKpE0UKgvXE_0ap?usp=drive_link) or [Baidu Drive](https://pan.baidu.com/s/146zs6nfFdNcTmA3ytsd7vQ?pwd=8fem)
 ```
 python test_sony.py

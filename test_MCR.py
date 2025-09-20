@@ -19,7 +19,7 @@ def test(model, dataloader, save_image, save_dir):
     total_samples = len(dataloader.dataset)
     tqdm_loader = tqdm(dataloader, desc="Evaluating", leave=False)
 
-    with open('/runs/MCR/best_results.txt', 'a') as f:
+    with open('test_results/mcr_test_results.txt', 'w') as f:
         for idx, data in enumerate(tqdm_loader):
             input_path, gt_path, ratio = data['input_path'][0], data['gt_path'][0], data['ratio'][0]
             input_raw = data['input_raw'].cuda(non_blocking=True)
@@ -57,6 +57,7 @@ def test(model, dataloader, save_image, save_dir):
 
 
 if __name__ == "__main__":
+    os.makedirs('test_results', exist_ok=True)
     with open('configs/mcr.yaml', 'r') as file:
         config = yaml.safe_load(file)
     set_random_seed(config['manual_seed'])

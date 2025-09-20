@@ -64,7 +64,7 @@ def test(model, dataloader, camera, ratio, merge_test=False):
     return psnr_sum, ssim_sum, total_samples
 
 if __name__ == "__main__":
-    os.makedirs('results/ELD', exist_ok=True)
+    os.makedirs('test_results/ELD', exist_ok=True)
     data_dir='/data/dataset/Carlos/ELD' #30
     parser = argparse.ArgumentParser()
     parser.add_argument('--merge_test', action='store_true', default=False)
