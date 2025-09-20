@@ -7,7 +7,13 @@ cd HiMA
 ## Environment Preparation
 
 ### Use packed environment
-To make it easy, we provide the packed environemnt, you can just download `HiMA.tar.gz` from [Google Drive](https://drive.google.com/file/d/1Jx7gSDNOdY4Mkddc_bokeaGfqLZ7FYTl/view?usp=sharing) or [Baidu Pan](https://pan.baidu.com/s/1DD3DC0m2-dYNe54C3dBknA?pwd=tbjd), and unzip it.
+To make it easy, we provide the packed environemnt, you can just download `HiMA.tar.gz` from [Google Drive](https://drive.google.com/file/d/1Jx7gSDNOdY4Mkddc_bokeaGfqLZ7FYTl/view?usp=sharing) or [Pan Baidu](https://pan.baidu.com/s/1DD3DC0m2-dYNe54C3dBknA?pwd=tbjd), and upload it to the environment folder (eg. `~/anaconda/env` or `~/miniconda/env`) and unzip it as follows.
+```
+cd ~/anaconda/env
+mkdir HiMA
+cd HiMA
+tar -zxvf HiMA.tar.gz
+```
 Then activate it by `conda activate HiMA`.
 
 ### Create environment from scratch
