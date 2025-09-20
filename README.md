@@ -79,7 +79,7 @@ The directory for the datasets should be as following:
 ## Train
 If you want to use ```Muon``` optimizer, please use ```torchrun``` as follows:
 ```
-torchrun --nproc_per_node=1 train.py --config=configs/sony.yaml
+torchrun --nproc_per_node=1 train.py --config=configs/sony.yaml --use_muon
 ```
 Otherwise, use 
 ```
