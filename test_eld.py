@@ -65,7 +65,7 @@ def test(model, dataloader, camera, ratio, merge_test=False):
 
 if __name__ == "__main__":
     os.makedirs('test_results/ELD', exist_ok=True)
-    data_dir='/data/dataset/Carlos/ELD' #30
+    data_dir='/data/dataset/Carlos/ELD'
     parser = argparse.ArgumentParser()
     parser.add_argument('--merge_test', action='store_true', default=False)
     args = parser.parse_args()
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     set_random_seed(config['manual_seed'])
     model_name, model = build_model(config['model'])
     model = model.cuda()
-    checkpoint = torch.load('Sony.pth') #30
+    checkpoint = torch.load('pretrained/sony.pth')
     model.load_state_dict(checkpoint['model'])
 
     
