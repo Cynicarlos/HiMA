@@ -42,15 +42,23 @@ pip install git+https://github.com/KellerJordan/Muon
 | Sony    | [Google Drive](https://drive.google.com/file/d/1G6VruemZtpOyHjOC5N8Ww3ftVXOydSXx/view)       | [Link](https://github.com/cchen156/Learning-to-See-in-the-Dark)   |  Bayer  |
 | Fuji    | [Google Drive](https://drive.google.com/file/d/1C7GeZ3Y23k1B8reRL79SqnZbRBc4uizH/view)       | [Link](https://github.com/cchen156/Learning-to-See-in-the-Dark)   |  X-Trans  |
 | MCR     | [Google Drive](https://drive.google.com/file/d/1Q3NYGyByNnEKt_mREzD2qw9L2TuxCV_r/view)       | [Link](https://github.com/TCL-AILab/Abandon_Bayer-Filter_See_in_the_Dark)   |  Bayer  |
+| ELD     | [Google Drive](https://drive.google.com/drive/folders/1QoEhB1P-hNzAc4cRb7RdzyEKktexPVgy)       | [Link](https://github.com/Vandermode/ELD)   |  Bayer  |
 
 The directory for the datasets should be as following:  
 
 ```
-📁datasets/  
-├─── 📁MCR/  
-│    ├─── 📄MCR_test_list.txt  
-│    ├─── 📄MCR_train_list.txt  
-│    └─── 📁Mono_Colored_RAW_Paired_DATASET/  
+📁datasets/
+├─── 📁ELD/
+│    └─── 📁SonyA7S2/
+│         ├─── 📄scene1_0001.ARW
+│         └─── 📄...
+│    └─── 📁NikonD850/
+│         ├─── 📄scene1_0001.nef
+│         └─── 📄...
+├─── 📁MCR/
+│    ├─── 📄MCR_test_list.txt
+│    ├─── 📄MCR_train_list.txt
+│    └─── 📁Mono_Colored_RAW_Paired_DATASET/
 │         ├─── 📁Color_RAW_Input/
 │         │    ├─── 📄C00001_48mp_0x8_0x00ff.tif
 │         │    └─── 📄...
