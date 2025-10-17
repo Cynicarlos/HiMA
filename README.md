@@ -7,9 +7,9 @@ cd HiMA
 ## Environment Preparation
 
 ### Use packed environment
-To make it easy, we provide the packed environemnt, you can just download `HiMA.tar.gz` from [Google Drive](https://drive.google.com/file/d/1Jx7gSDNOdY4Mkddc_bokeaGfqLZ7FYTl/view?usp=sharing) or [Pan Baidu](https://pan.baidu.com/s/1DD3DC0m2-dYNe54C3dBknA?pwd=tbjd), and upload it to the environment folder (eg. `~/anaconda/env` or `~/miniconda/env`) and unzip it as follows.
+To make it easy, we provide the packed environemnt, you can just download `HiMA.tar.gz` from [Google Drive](https://drive.google.com/file/d/1Jx7gSDNOdY4Mkddc_bokeaGfqLZ7FYTl/view?usp=sharing) or [Pan Baidu](https://pan.baidu.com/s/1DD3DC0m2-dYNe54C3dBknA?pwd=tbjd), and upload it to the environment folder (eg. `~/anaconda3/envs` or `~/miniconda/envs`) and unzip it as follows.
 ```
-cd ~/anaconda/env
+cd ~/anaconda3/envs
 mkdir HiMA
 cd HiMA
 tar -zxvf HiMA.tar.gz
@@ -93,14 +93,15 @@ python train.py --config=configs/sony.yaml
 ```
 The results should be similar but the training time is longer for Muon.
 
-For other datasets, just change the ```config```.
+For other datasets, just change the ```config```. Please always remember to change the ```data_dir``` of ```xxx.yaml```  to the right place for both training and testing.
 
 If you want to run the program in the background, you can use the script ```./train.sh``` Remember to install ```tmux``` first. And when you firstly try this, you should usually run ```chmod +x train.sh```
 
 Then you may use ```tail -f train.log``` to see the training process.
 ## Test
 Before evaluating our pretrained models, please download them by the following links and change their name to `sony.pth` et. al and put them in the ```pretrained``` folder.  
-[Google Drive](https://drive.google.com/drive/folders/196hPm0aLqpgsxLryKqKpE0UKgvXE_0ap?usp=drive_link) or [Baidu Drive](https://pan.baidu.com/s/146zs6nfFdNcTmA3ytsd7vQ?pwd=8fem)
+[Google Drive](https://drive.google.com/drive/folders/196hPm0aLqpgsxLryKqKpE0UKgvXE_0ap?usp=drive_link) or [Baidu Drive](https://pan.baidu.com/s/146zs6nfFdNcTmA3ytsd7vQ?pwd=8fem).
+
 ```
 python test_sony.py
 ```
