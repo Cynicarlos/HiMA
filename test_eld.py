@@ -15,16 +15,20 @@ def crop_tow_patch(x):
     res = [x[:, :, :, :W//2], x[:, :, :, W//2:]]
     return res
 
+def crop_four_patch(x):
+    _, _, H, W = x.shape
+    res = [x[:, :, :H//2, :W//2], x[:, :, :H//2, W//2:], x[:, :, H//2:, :W//2], x[:, :, H//2:, W//2:]]
+    return res
 
 @torch.no_grad()
-def test(model, dataloader, camera, ratio, merge_test=False):
+def test(model, dataloader, camera, ratio, merge_test, num_patch):
     model.eval()
     psnr_sum = 0.0
     ssim_sum = 0.0
     total_samples = len(dataloader.dataset)
     tqdm_loader = tqdm(dataloader, desc=f"Evaluating Camara {camera}:", leave=False)
     
-    with open(f'results/ELD/{camera}_{ratio}.txt', 'w') as f:
+    with open(f'test_results/ELD/{camera}_{ratio}.txt', 'w') as f:
         for idx, data in enumerate(tqdm_loader):
             input = data['input_raw'].cuda()
             gt = data['gt_rgb'].cuda()
@@ -32,9 +36,14 @@ def test(model, dataloader, camera, ratio, merge_test=False):
             input_path = data['input_path'][0]
             gt_path = data['gt_path'][0]
             if merge_test:
-                inputs = crop_tow_patch(input)
-                gts = crop_tow_patch(gt)
-                preds = [model(patch)[0] for patch in inputs]
+                if num_patch == 2:
+                    inputs = crop_tow_patch(input)
+                    gts = crop_tow_patch(gt)
+                    preds = [model(patch)[0] for patch in inputs]
+                elif num_patch == 4:
+                    inputs = crop_four_patch(input)
+                    gts = crop_four_patch(gt)
+                    preds = [model(patch)[0] for patch in inputs]
                 preds = [torch.clamp(pred, 0, 1) for pred in preds]
                 psnrs = [get_psnr_torch(pred, gt, data_range=1.0) for (pred, gt) in zip(preds, gts)]
                 ssims = [get_ssim_torch(pred, gt, data_range=1.0) for (pred, gt) in zip(preds, gts)]
@@ -42,9 +51,6 @@ def test(model, dataloader, camera, ratio, merge_test=False):
                 ssim = sum(ssims) / len(ssims)
             else:
                 pred, _ = model(input)
-                pred = torch.clamp(pred, 0, 1)
-                psnr = get_psnr_torch(pred, gt, data_range=1.0)
-                ssim = get_ssim_torch(pred, gt, data_range=1.0)
                 pred = torch.clamp(pred, 0, 1)
                 psnr = get_psnr_torch(pred, gt, data_range=1.0)
                 ssim = get_ssim_torch(pred, gt, data_range=1.0)
@@ -67,7 +73,7 @@ if __name__ == "__main__":
     os.makedirs('test_results/ELD', exist_ok=True)
     data_dir='/data/dataset/Carlos/ELD'
     parser = argparse.ArgumentParser()
-    parser.add_argument('--merge_test', action='store_true', default=False)
+    parser.add_argument('--merge_test', action='store_true', default=True)
     args = parser.parse_args()
     
     with open('configs/sony.yaml', 'r') as file:
@@ -81,10 +87,11 @@ if __name__ == "__main__":
     
     #cameras = ['SonyA7S2', 'NikonD850', 'CanonEOS70D', 'CanonEOS700D']
     cameras = ['SonyA7S2', 'NikonD850']
+    num_patches = [2, 4]
     
     #ratios = [1, 10, 100, 200]
     ratios = [100, 200]
-    for camera, num_patch in zip(cameras, num_patches):
+    for (camera, num_patch) in zip(cameras, num_patches):
         total_psnr = 0.0
         total_ssim = 0.0
         total_samples = 0
@@ -93,7 +100,7 @@ if __name__ == "__main__":
             dataset = ELDDataset(data_dir=data_dir, camera=camera, pairs_file_path=pairs_file_path, split='test')
             dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=16, pin_memory=True)
             psnr, ssim, samples = test(model, dataloader, camera=camera, ratio=ratio, 
-                                    merge_test=args.merge_test)
+                                    merge_test=args.merge_test, num_patch=num_patch)
             total_psnr += psnr
             total_ssim += ssim
             total_samples += samples
