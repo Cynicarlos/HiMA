@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 指定要使用的 Conda 环境
-ENV_NAME="mamba"
+ENV_NAME="hima"
 
 # 指定要使用的 GPU 编号
 GPU_ID=0
@@ -10,7 +10,7 @@ GPU_ID=0
 TRAIN_SCRIPT="train.py --config=configs/sony.yaml"
 
 # 创建一个新的 tmux 会话
-SESSION_NAME="mamba"
+SESSION_NAME="hima"
 tmux new-session -d -s $SESSION_NAME
 
 # 激活 Conda 环境
