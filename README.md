@@ -117,5 +117,13 @@ python test_sony.py
 ## Citation
 If there is any help for your research, please star this repository and if you want to follow this work, you can cite as follows:
 ```md
-xxx
+@misc{chen2025rethinkingefficienthierarchicalmixing,
+      title={Rethinking Efficient Hierarchical Mixing Architecture for Low-light RAW Image Enhancement}, 
+      author={Xianmin Chen and Peiliang Huang and Longfei Han and Dingwen Zhang and Junwei Han},
+      year={2025},
+      eprint={2510.15497},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2510.15497}, 
+}
 ```
