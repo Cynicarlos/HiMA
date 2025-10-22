@@ -1,4 +1,5 @@
-# HiMA
+# HiMA ([arXiv](https://arxiv.org/abs/2510.15497))
+
 Clone this repository
 ```
 git clone https://github.com/Cynicarlos/HiMA.git
