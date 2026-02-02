@@ -294,7 +294,7 @@ class Mamba(nn.Module):
         xs = torch.stack([
             torch.where(row_indices == 0, x, torch.flip(x, dims=[3])).view(B, -1, L),
             torch.where(col_indices == 0,torch.transpose(x, dim0=2, dim1=3).contiguous(),torch.flip(torch.transpose(x, dim0=2, dim1=3).contiguous(), dims=[3])).view(B, -1, L),
-        ], dim=1).view(B, K, -1, L)
+        ], dim=1).view(B, 2, -1, L)
 
         if self.num_scan_directions == 4:
             xs = torch.cat([xs, torch.flip(xs, dims=[-1])], dim=1) # (B, 4, C, L)
