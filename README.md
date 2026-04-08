@@ -12,6 +12,7 @@ To make it easy, we provide the packed environemnt, you can just download `HiMA.
 ```
 cd ~/anaconda3/envs
 mkdir HiMA
+mv HiMA.tar.gz HiMA
 cd HiMA
 tar -zxvf HiMA.tar.gz
 ```
